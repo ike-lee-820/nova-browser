@@ -1,0 +1,75 @@
+# Nova Browser - Light Theme Configuration
+
+[colors]
+# Background colors
+bg_primary = "#FFFFFF"
+bg_secondary = "#F8F9FA"
+bg_tertiary = "#F1F3F5"
+bg_hover = "#E9ECEF"
+bg_active = "#DEE2E6"
+
+# Surface colors
+surface = "#FFFFFF"
+surface_raised = "#FFFFFF"
+surface_overlay = "rgba(255, 255, 255, 0.94)"
+
+# Text colors
+text_primary = "#212529"
+text_secondary = "#6C757D"
+text_tertiary = "#ADB5BD"
+text_disabled = "#CED4DA"
+text_on_accent = "#FFFFFF"
+
+# Accent colors
+accent_primary = "#4361EE"
+accent_secondary = "#728BFA"
+accent_tertiary = "#DEE6FF"
+
+# Status colors
+success = "#28A745"
+warning = "#FFC107"
+error = "#DC3545"
+info = "#17A2B8"
+
+# Border colors
+border = "#DEE2E6"
+border_focused = "#4361EE"
+divider = "#E9ECEF"
+
+# Tab colors
+tab_active_bg = "#FFFFFF"
+tab_inactive_bg = "#F1F3F5"
+tab_hover_bg = "#E9ECEF"
+
+# Toolbar colors
+toolbar_bg = "#F8F9FA"
+address_bar_bg = "#FFFFFF"
+address_bar_focus_bg = "#FFFFFF"
+
+# Sidebar colors
+sidebar_bg = "#F8F9FA"
+sidebar_item_hover = "#E9ECEF"
+sidebar_item_active = "#DEE2E6"
+
+# Shadow
+shadow_color = "rgba(0, 0, 0, 0.08)"
+
+# Incognito colors
+incognito_bg = "#282A36"
+incognito_toolbar = "#323440"
+
+[spacing]
+item_spacing = 8.0
+button_padding_h = 12.0
+button_padding_v = 6.0
+corner_radius = 8.0
+small_corner_radius = 4.0
+large_corner_radius = 12.0
+
+[typography]
+font_family = "system-ui, -apple-system, sans-serif"
+font_size_small = 11.0
+font_size_body = 13.0
+font_size_heading = 16.0
+font_size_title = 18.0
+font_size_large = 28.0

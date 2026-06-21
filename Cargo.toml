@@ -1,0 +1,100 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/nova-core",
+    "crates/nova-ui",
+    "crates/nova-features",
+    "crates/nova-app",
+    "crates/nova-android",
+]
+
+# Exclude Android from default build (requires Android NDK)
+default-members = [
+    "crates/nova-core",
+    "crates/nova-ui",
+    "crates/nova-features",
+    "crates/nova-app",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Nova Browser Team"]
+license = "MIT"
+repository = "https://github.com/nova-browser/nova"
+
+[workspace.dependencies]
+# Serialization
+serde = { version = "=1.0.203", features = ["derive"] }
+serde_json = "1"
+toml = "0.5"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.10"
+
+# Error handling
+anyhow = "1"
+thiserror = "1"
+
+# Windowing & UI
+winit = "0.29"
+egui = "0.27"
+egui-winit = "0.27"
+egui-wgpu = "0.27"
+wgpu = "0.19"
+
+# Platform-specific
+raw-window-handle = "0.6"
+
+# Crypto & hashing
+sha2 = "=0.9.9"
+aes-gcm = "=0.9.4"
+base64 = "=0.21.7"
+ring = "0.16"
+
+# Pin transitive deps to avoid edition2024 / rustc version requirement
+getrandom = "=0.2.15"
+rayon-core = "=1.12.1"
+lebe = "=0.5.2"
+jni-sys = "=0.3.0"
+
+# File system
+dirs = "=3.0.2"
+glob = "0.3"
+
+# Zip (disable aes-crypto to avoid base64ct/pbkdf2 edition2024)
+zip = { version = "0.6", default-features = false, features = ["deflate"] }
+# Regex
+regex = "1"
+once_cell = "1"
+
+# Chrono
+chrono = { version = "0.4", features = ["serde"] }
+
+# UUID
+uuid = { version = "=1.6.1", features = ["v4", "serde"] }
+
+# URL parsing
+url = "=2.5.0"
+# Pin transitive deps that require edition2024
+idna = "=1.0.3"
+
+# Image processing
+image = "0.24"
+
+# Random
+rand = "0.8"
+
+# Profiling
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.dev]
+opt-level = 1

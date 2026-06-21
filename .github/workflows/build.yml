@@ -1,0 +1,403 @@
+name: Build All Platforms
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Create release artifacts'
+        type: boolean
+        default: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # =========================================================================
+  # Desktop builds
+  # =========================================================================
+
+  # --- Windows ---
+  build-windows-x64:
+    name: Windows x86_64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-x64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-x64-cargo-
+
+      - name: Build (desktop crates)
+        run: cargo build --release -p nova-app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-windows-x64
+          path: target/release/nova-browser.exe
+
+  build-windows-x86:
+    name: Windows x86 (32-bit)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: i686-pc-windows-msvc
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-x86-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-x86-cargo-
+
+      - name: Build (desktop crates)
+        run: cargo build --release -p nova-app --target i686-pc-windows-msvc
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-windows-x86
+          path: target/i686-pc-windows-msvc/release/nova-browser.exe
+
+  build-windows-arm64:
+    name: Windows ARM64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-pc-windows-msvc
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-arm64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-arm64-cargo-
+
+      - name: Build (desktop crates)
+        run: cargo build --release -p nova-app --target aarch64-pc-windows-msvc
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-windows-arm64
+          path: target/aarch64-pc-windows-msvc/release/nova-browser.exe
+
+  # --- Linux ---
+  build-linux-x64:
+    name: Linux x86_64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential pkg-config cmake \
+            libssl-dev libgtk-3-dev libx11-dev libxcb1-dev \
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libxkbcommon-dev libfontconfig1-dev libfreetype6-dev \
+            libglib2.0-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-x64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-x64-cargo-
+
+      - name: Build (desktop crates)
+        run: cargo build --release -p nova-app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-linux-x64
+          path: target/release/nova-browser
+
+  build-linux-arm64:
+    name: Linux ARM64 (aarch64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cross-compilation toolchain
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-aarch64-linux-gnu pkg-config \
+            libssl-dev:arm64 || true
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-arm64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-arm64-cargo-
+
+      - name: Build (desktop crates)
+        run: |
+          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+          cargo build --release -p nova-app --target aarch64-unknown-linux-gnu
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-linux-arm64
+          path: target/aarch64-unknown-linux-gnu/release/nova-browser
+
+  build-linux-arm32:
+    name: Linux ARM32 (armv7)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cross-compilation toolchain
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-arm-linux-gnueabihf
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: armv7-unknown-linux-gnueabihf
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-arm32-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-arm32-cargo-
+
+      - name: Build (desktop crates)
+        run: |
+          export CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc
+          cargo build --release -p nova-app --target armv7-unknown-linux-gnueabihf
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-linux-arm32
+          path: target/armv7-unknown-linux-gnueabihf/release/nova-browser
+
+  # --- macOS ---
+  build-macos-x64:
+    name: macOS x86_64
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-x64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-x64-cargo-
+
+      - name: Build (desktop crates)
+        run: cargo build --release -p nova-app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-macos-x64
+          path: target/release/nova-browser
+
+  build-macos-arm64:
+    name: macOS ARM64 (Apple Silicon)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-arm64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-arm64-cargo-
+
+      - name: Build (desktop crates)
+        run: cargo build --release -p nova-app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-macos-arm64
+          path: target/release/nova-browser
+
+  # =========================================================================
+  # Android build
+  # =========================================================================
+  build-android:
+    name: Android (arm64-v8a, armeabi-v7a, x86_64, x86)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential pkg-config
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: >-
+            aarch64-linux-android,
+            armv7-linux-androideabi,
+            x86_64-linux-android,
+            i686-linux-android
+
+      - name: Install cargo-ndk
+        run: |
+          cargo install cargo-ndk
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-android-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-android-cargo-
+
+      - name: Build Android native library
+        run: |
+          cargo ndk \
+            -t arm64-v8a \
+            -t armeabi-v7a \
+            -t x86_64 \
+            -t x86 \
+            -o android/app/src/main/jniLibs \
+            build --release \
+            -p nova-android
+
+      - name: Upload Android native libs
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-android-libs
+          path: android/app/src/main/jniLibs/
+
+  # =========================================================================
+  # Release packaging
+  # =========================================================================
+  create-release:
+    name: Create Release Package
+    needs:
+      - build-windows-x64
+      - build-windows-x86
+      - build-windows-arm64
+      - build-linux-x64
+      - build-linux-arm64
+      - build-linux-arm32
+      - build-macos-x64
+      - build-macos-arm64
+      - build-android
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+
+      - name: Create release packages
+        run: |
+          mkdir -p release
+
+          # Windows
+          cp dist/nova-browser-windows-x64/nova-browser.exe release/nova-browser-windows-x64.exe
+          cp dist/nova-browser-windows-x86/nova-browser.exe release/nova-browser-windows-x86.exe
+          cp dist/nova-browser-windows-arm64/nova-browser.exe release/nova-browser-windows-arm64.exe
+
+          # Linux
+          cp dist/nova-browser-linux-x64/nova-browser release/nova-browser-linux-x64
+          cp dist/nova-browser-linux-arm64/nova-browser release/nova-browser-linux-arm64
+          cp dist/nova-browser-linux-arm32/nova-browser release/nova-browser-linux-arm32
+
+          # macOS
+          cp dist/nova-browser-macos-x64/nova-browser release/nova-browser-macos-x64
+          cp dist/nova-browser-macos-arm64/nova-browser release/nova-browser-macos-arm64
+
+          # Android
+          cp -r dist/nova-browser-android-libs/ release/android-jniLibs/
+
+          echo "Release packages prepared in release/"
+
+      - name: Create release archive
+        run: |
+          cd release
+          zip -r ../nova-browser-all-platforms.zip .
+          cd ..
+
+      - name: Upload release archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-browser-release
+          path: nova-browser-all-platforms.zip

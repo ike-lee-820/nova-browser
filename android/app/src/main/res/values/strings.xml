@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nova Browser</string>
+    <string name="tab_new">新标签页</string>
+    <string name="tab_private">隐私标签页</string>
+    <string name="menu_bookmarks">书签</string>
+    <string name="menu_history">历史记录</string>
+    <string name="menu_downloads">下载</string>
+    <string name="menu_settings">设置</string>
+    <string name="menu_extensions">扩展</string>
+    <string name="menu_share">分享</string>
+    <string name="menu_find">在页面中查找</string>
+    <string name="menu_desktop_site">桌面版网站</string>
+    <string name="menu_reader_mode">阅读模式</string>
+    <string name="menu_add_bookmark">添加书签</string>
+    <string name="search_hint">搜索或输入网址</string>
+    <string name="dialog_ok">确定</string>
+    <string name="dialog_cancel">取消</string>
+</resources>
