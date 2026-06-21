@@ -46,9 +46,45 @@ brew install cmake pkg-config
 - 安装 [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/)（含 C++ 工具链）
 - 或安装 [MSYS2](https://www.msys2.org/) 并运行 `pacman -S mingw-w64-x86_64-toolchain cmake`
 
-### 3. 放置 CEF 二进制文件
+### 3. 获取 CEF 二进制文件
 
-本项目使用 Chromium Embedded Framework (CEF) 作为浏览器内核。你需要自行获取 CEF 二进制文件，放到对应平台的 `cef/` 目录下。
+> **CEF 不纳入 Git 仓库**（单个平台 500MB-2GB，8 个平台远超 GitHub 限制），
+> 改为构建时自动下载或手动放置。
+
+#### 方式 A：自动下载（推荐）
+
+运行项目的下载脚本，自动从 CEF 官方 CDN 下载当前平台的 CEF：
+
+```bash
+# Windows (PowerShell)
+.\download-cef.ps1
+
+# Linux / macOS
+./download-cef.sh
+```
+
+指定平台和版本：
+
+```bash
+# Windows 下载 Linux 版 CEF（交叉编译时用）
+.\download-cef.ps1 -Platform linux64 -Version "149.0.4+g2f1bfd8+chromium-149.0.7827.156"
+
+# bash
+./download-cef.sh linux64 "149.0.4+g2f1bfd8+chromium-149.0.7827.156"
+```
+
+下载后 CEF 会自动解压到 `cef/<平台目录>/` 下面。
+
+#### 方式 B：一键构建时自动下载
+
+```powershell
+# 构建时指定 CEF 版本，自动下载所有平台的 CEF
+.\build-all.ps1 -OutputDir "L:\BBD" -CefVersion "149.0.4+g2f1bfd8+chromium-149.0.7827.156"
+```
+
+#### 方式 C：手动下载放置
+
+从 [CEF 官方下载页](https://cef-builds.spotifycdn.com/index.html) 下载 Standard Distribution，解压到对应平台目录。
 
 #### 目录总览
 
@@ -169,15 +205,6 @@ cef/macos-arm64/
 > - V8 快照命名带架构后缀：`v8_context_snapshot.arm64.bin` / `v8_context_snapshot.x86_64.bin`
 > - 多语言资源使用 `.lproj/locale.pak` 格式（而非 `locales/` 目录）
 
-> **获取 CEF**：从 [CEF 官方下载页](https://cef-builds.spotifycdn.com/index.html) 下载对应平台的 **Standard Distribution**。推荐 CEF 120+ 版本。
-> 
-> **重要**：下载后解压，将整个目录内容（含 CMakeLists.txt、include/、Debug/、Release/、Resources/ 等）直接复制到对应平台目录。
-> 
-> 各平台搜索关键词：
-> - Linux: `linux64` / `linuxarm64` / `linuxarm`
-> - Windows: `windows64` / `windows32` / `windowsarm64`
-> - macOS: `macosarm64` / `macosx64`
-
 ---
 
 ## 编译步骤
@@ -226,6 +253,95 @@ cargo run --release
 
 ```bash
 ./target/release/nova-browser
+```
+
+---
+
+## Windows x64 — 一键编译全平台
+
+如果你只有一台 Windows x64 电脑，可以用项目自带的 `build-all.ps1` 脚本一键编译所有可编译的目标：
+
+### 前提条件
+
+1. **Rust** — 已安装 rustup
+2. **Visual Studio Build Tools** — 含 C++ 工具链、x86 工具链、ARM64 工具链
+3. **WSL2** — 用于编译 Linux 目标（在 PowerShell 中运行 `wsl --install`）
+4. **Android NDK** — 用于编译 Android 目标（可选，设置 `ANDROID_NDK_HOME` 环境变量）
+5. **cargo-ndk** — `cargo install cargo-ndk`
+
+### 一键构建
+
+```powershell
+# 输出到 L:\BBD
+.\build-all.ps1 -OutputDir "L:\BBD"
+
+# 跳过 Android 编译
+.\build-all.ps1 -OutputDir "L:\BBD" -SkipAndroid
+
+# 跳过 Linux 编译（如果没有 WSL2）
+.\build-all.ps1 -OutputDir "L:\BBD" -SkipLinux
+```
+
+### 产物结构
+
+```
+L:\BBD\
+├── windows-x64\    nova-browser.exe     ← 你的 Windows 原生
+├── windows-x86\    nova-browser.exe     ← 32位 Windows
+├── windows-arm64\  nova-browser.exe     ← ARM64 Windows
+├── linux-x64\      nova-browser         ← WSL2 编译
+├── linux-arm64\    nova-browser         ← WSL2 交叉编译
+├── linux-arm32\    nova-browser         ← WSL2 交叉编译
+├── android\        jniLibs\             ← cargo-ndk 编译
+│   ├── arm64-v8a\  libnova_android.so
+│   ├── armeabi-v7a\ libnova_android.so
+│   ├── x86_64\     libnova_android.so
+│   └── x86\        libnova_android.so
+├── macos-x64\      (需要 GitHub Actions)
+└── macos-arm64\    (需要 GitHub Actions)
+```
+
+### 各目标可行性
+
+| 目标 | 能否在 Windows 编译 | 方式 |
+|------|-------------------|------|
+| Windows x86_64 | 原生 | 你的 Windows 电脑 |
+| Windows x86 (32位) | 安装 x86 工具链即可 | VS Installer → 勾选 x86 工具链 |
+| Windows ARM64 | 安装 ARM64 工具链即可 | VS Installer → 勾选 ARM64 工具链 |
+| Linux x86_64 | WSL2 | `wsl --install` 后脚本自动处理 |
+| Linux ARM64 | WSL2 + 交叉编译器 | 脚本自动安装 `gcc-aarch64-linux-gnu` |
+| Linux ARM32 | WSL2 + 交叉编译器 | 脚本自动安装 `gcc-arm-linux-gnueabihf` |
+| Android (4架构) | cargo-ndk + Android NDK | 设置 `ANDROID_NDK_HOME` |
+| macOS x86_64 | 无法编译 | 需要 Mac 或 GitHub Actions |
+| macOS ARM64 | 无法编译 | 需要 Mac 或 GitHub Actions |
+
+### 手动编译各目标
+
+如果不使用脚本，手动编译：
+
+```powershell
+# Windows x86_64
+cargo build --release -p nova-app
+copy target\release\nova-browser.exe L:\BBD\windows-x64\
+
+# Windows x86 (32位)
+rustup target add i686-pc-windows-msvc
+cargo build --release -p nova-app --target i686-pc-windows-msvc
+copy target\i686-pc-windows-msvc\release\nova-browser.exe L:\BBD\windows-x86\
+
+# Windows ARM64
+rustup target add aarch64-pc-windows-msvc
+cargo build --release -p nova-app --target aarch64-pc-windows-msvc
+copy target\aarch64-pc-windows-msvc\release\nova-browser.exe L:\BBD\windows-arm64\
+
+# Linux (在 WSL2 中)
+wsl
+cd /mnt/你的项目路径
+cargo build --release -p nova-app
+cp target/release/nova-browser /mnt/l/BBD/linux-x64/
+
+# Android
+cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 -t x86 -o L:\BBD\android\jniLibs build --release -p nova-android
 ```
 
 ---

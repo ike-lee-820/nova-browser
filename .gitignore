@@ -1,0 +1,48 @@
+# CEF 二进制文件太大，不纳入版本控制
+# 通过 download-cef.ps1 / download-cef.sh 在构建时自动下载
+cef/win64/Release/
+cef/win64/Debug/
+cef/win32/Release/
+cef/win32/Debug/
+cef/win-arm64/Release/
+cef/win-arm64/Debug/
+cef/linux64/Release/
+cef/linux64/Debug/
+cef/linux-arm64/Release/
+cef/linux-arm64/Debug/
+cef/linux-arm32/Release/
+cef/linux-arm32/Debug/
+cef/macos-arm64/Release/
+cef/macos-arm64/Debug/
+cef/macos64/Release/
+cef/macos64/Debug/
+
+# CEF 下载的压缩包
+cef/*.tar.bz2
+cef/*.tar.gz
+cef/*.zip
+
+# Android
+android/app/libs/*.aar
+android/app/src/main/jniLibs/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+
+# Rust
+target/
+.cargo/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

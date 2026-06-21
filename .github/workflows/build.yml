@@ -11,10 +11,17 @@ on:
         description: 'Create release artifacts'
         type: boolean
         default: false
+      cef_version:
+        description: 'CEF version (leave empty to skip CEF download)'
+        type: string
+        default: ''
 
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  # 默认 CEF 版本（push/PR 自动编译时使用）
+   # 设为空字符串则跳过 CEF 下载（仅编译 Rust 代码验证）
+   CEF_VERSION: "149.0.4+g2f1bfd8+chromium-149.0.7827.156"
 
 jobs:
   # =========================================================================
@@ -32,6 +39,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
+
+      - name: Download CEF (optional)
+        if: ${{ env.CEF_VERSION != '' || github.event.inputs.cef_version != '' }}
+        run: .\download-cef.ps1 -Platform windows64 -Version "${{ github.event.inputs.cef_version || env.CEF_VERSION }}"
 
       - name: Cache cargo
         uses: actions/cache@v4
@@ -63,6 +74,10 @@ jobs:
         with:
           targets: i686-pc-windows-msvc
 
+      - name: Download CEF (optional)
+        if: ${{ env.CEF_VERSION != '' || github.event.inputs.cef_version != '' }}
+        run: .\download-cef.ps1 -Platform windows32 -Version "${{ github.event.inputs.cef_version || env.CEF_VERSION }}"
+
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -92,6 +107,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-pc-windows-msvc
+
+      - name: Download CEF (optional)
+        if: ${{ env.CEF_VERSION != '' || github.event.inputs.cef_version != '' }}
+        run: .\download-cef.ps1 -Platform windowsarm64 -Version "${{ github.event.inputs.cef_version || env.CEF_VERSION }}"
 
       - name: Cache cargo
         uses: actions/cache@v4
@@ -133,6 +152,10 @@ jobs:
         with:
           targets: x86_64-unknown-linux-gnu
 
+      - name: Download CEF (optional)
+        if: ${{ env.CEF_VERSION != '' || github.event.inputs.cef_version != '' }}
+        run: bash download-cef.sh linux64 "${{ github.event.inputs.cef_version || env.CEF_VERSION }}"
+
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -168,6 +191,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-unknown-linux-gnu
+
+      - name: Download CEF (optional)
+        if: ${{ env.CEF_VERSION != '' || github.event.inputs.cef_version != '' }}
+        run: bash download-cef.sh linuxarm64 "${{ github.event.inputs.cef_version || env.CEF_VERSION }}"
 
       - name: Cache cargo
         uses: actions/cache@v4
@@ -206,6 +233,10 @@ jobs:
         with:
           targets: armv7-unknown-linux-gnueabihf
 
+      - name: Download CEF (optional)
+        if: ${{ env.CEF_VERSION != '' || github.event.inputs.cef_version != '' }}
+        run: bash download-cef.sh linuxarm "${{ github.event.inputs.cef_version || env.CEF_VERSION }}"
+
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -239,6 +270,10 @@ jobs:
         with:
           targets: x86_64-apple-darwin
 
+      - name: Download CEF (optional)
+        if: ${{ env.CEF_VERSION != '' || github.event.inputs.cef_version != '' }}
+        run: bash download-cef.sh macosx64 "${{ github.event.inputs.cef_version || env.CEF_VERSION }}"
+
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -268,6 +303,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin
+
+      - name: Download CEF (optional)
+        if: ${{ env.CEF_VERSION != '' || github.event.inputs.cef_version != '' }}
+        run: bash download-cef.sh macosarm64 "${{ github.event.inputs.cef_version || env.CEF_VERSION }}"
 
       - name: Cache cargo
         uses: actions/cache@v4
@@ -312,8 +351,7 @@ jobs:
             i686-linux-android
 
       - name: Install cargo-ndk
-        run: |
-          cargo install cargo-ndk
+        run: cargo install cargo-ndk
 
       - name: Cache cargo
         uses: actions/cache@v4
@@ -371,21 +409,17 @@ jobs:
         run: |
           mkdir -p release
 
-          # Windows
           cp dist/nova-browser-windows-x64/nova-browser.exe release/nova-browser-windows-x64.exe
           cp dist/nova-browser-windows-x86/nova-browser.exe release/nova-browser-windows-x86.exe
           cp dist/nova-browser-windows-arm64/nova-browser.exe release/nova-browser-windows-arm64.exe
 
-          # Linux
           cp dist/nova-browser-linux-x64/nova-browser release/nova-browser-linux-x64
           cp dist/nova-browser-linux-arm64/nova-browser release/nova-browser-linux-arm64
           cp dist/nova-browser-linux-arm32/nova-browser release/nova-browser-linux-arm32
 
-          # macOS
           cp dist/nova-browser-macos-x64/nova-browser release/nova-browser-macos-x64
           cp dist/nova-browser-macos-arm64/nova-browser release/nova-browser-macos-arm64
 
-          # Android
           cp -r dist/nova-browser-android-libs/ release/android-jniLibs/
 
           echo "Release packages prepared in release/"
