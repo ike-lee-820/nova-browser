@@ -20,8 +20,8 @@ env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
   # 默认 CEF 版本（push/PR 自动编译时使用）
-   # 设为空字符串则跳过 CEF 下载（仅编译 Rust 代码验证）
-   CEF_VERSION: "149.0.4+g2f1bfd8+chromium-149.0.7827.156"
+  # 设为空字符串则跳过 CEF 下载（仅编译 Rust 代码验证）
+  CEF_VERSION: "149.0.4+g2f1bfd8+chromium-149.0.7827.156"
 
 jobs:
   # =========================================================================

@@ -34,7 +34,7 @@ android/local.properties
 
 # Rust
 target/
-.cargo/
+# .cargo/config.toml 需要提交（包含编译配置）
 
 # IDE
 .vs/
